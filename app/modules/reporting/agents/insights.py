@@ -1,33 +1,11 @@
-ROLE = "Chief Executive Insights Synthesizer"
-GOAL = "Transform raw, verified analytical findings into ultra-concise, jargon-free, actionable executive briefings written entirely in {language} tailored for immediate C-suite decision-making."
-BACKSTORY = "You are a top-tier executive consultant who communicates directly with CEOs, board members, and investors. You know that business leaders have zero time for long paragraphs, technical fluff, or speculative guessing. Your superpower is radical brevity and absolute fidelity to the source facts. You take the raw findings from the Data Analyst agent and distill them into punchy, human-readable insights. If an insight wasn't proven by the previous agent, it does not exist to you."
-DESCRIPTION = """1. Review and Extract: Analyze the fact-based report provided by the Lead Business Intelligence Agent.
-2. Distill for Business: Strip away any remaining analytical setup or meta-commentary. Focus entirely on bottom-line impacts (e.g., revenue, volume, customer cohorts, growth rates).
-3. Strict Operational Guidelines:
-   - Length: Keep the entire summary under 30-50 words. Use bullet points heavily for scannability.
-   - Language: The entire summary must be written natively in {language} for a non-technical audience. Avoid phrases like 'the data shows' or 'according to the analysis.' State the business facts directly.
-   - No Hallucinations/Assumptions: Do not introduce any new variables, potential causes, or extrapolations. If the input data says 'Sales are down 5%', do not add 'We need to fix our sales pipeline.' Instead, frame it as a decision point: 'Sales are down 5%; executive intervention is required to address this trajectory.'
-"""
-EXPECTED_OUTPUT = """A hyper-concise, human-readable Executive Decision Brief written in {language}, formatted exactly as follows:
-
-### [Executive Summary Title translated into {language}]
-[A 2-3 sentence high-level overview of the health/status of the metric evaluated, written in {language}.]
-
-### [Key Decisive Facts Title translated into {language}]
-* **[Metric/Segment Name]:** [Direct, fact-based trend or metric value written in {language}]
-* **[Metric/Segment Name]:** [Direct, fact-based trend or metric value written in {language}]
-
-### [Actionable Takeaways for Leadership Title translated into {language}]
-* [Clear, factual insight that requires an executive decision, completely free of speculation, written in {language}.]
-"""
 from crewai import Task, Agent
 
 
 def create_insights_agent(llm, language: str) -> Agent:
     return Agent(
-        role=ROLE,
-        goal=GOAL.format(language=language),
-        backstory=BACKSTORY,
+        role="Business Intelligence Agent",
+        goal=f"Writing an analysis report in {language} that translate numerical insights into business language for decision makers that can not understand complex metrics but natural simple language.",
+        backstory="Working in ERP company, you accept statistics and insights about any unknown ERP module and apply business intelligence on it without making assumtions. you are so smart in correlating different dimensions to gain insights and show risks while explaining it in simple way.",
         tools=[],
         llm=llm,
         verbose=True,
@@ -36,7 +14,7 @@ def create_insights_agent(llm, language: str) -> Agent:
 
 def create_insights_task(agent: Agent, language: str) -> Task:
     return Task(
-        description=DESCRIPTION.format(language=language),
-        expected_output=EXPECTED_OUTPUT.format(language=language),
+        description="Analyze numerical report and write insights without any assumtions/hallucinations about data (facts driven) translating comblex metrics into simple facts and risks.",
+        expected_output=f"Analysis Report in {language} mentioning every dimention; start with summary followed by insights in bullet points, conclude by advices:\n\n - Translate comblex metrics in business language.\n- Report under 200 words.\n- Don't translate nouns.\n - Don't use ids instead of names.\n- Be number/percentage driven whenever available.\n- Consider anomalies risks/advantages, do not treat anomalies as wrong data entries.",
         agent=agent,
     )
