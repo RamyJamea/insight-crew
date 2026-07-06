@@ -6,26 +6,30 @@ from pydantic import Field
 class AggregationTool(BaseTool):
     name: str = "Aggregate Data"
     description: str = (
-        "Aggregates a numeric column grouped by another column. Returns pipe-delimited data."
+        "Aggregates a numeric column grouped by one or multiple categorical columns. "
+        "For entity analysis, always pass both the ID and Name columns together. Returns pipe-delimited data."
     )
     df: pd.DataFrame = Field(...)
 
     def _run(
         self,
-        groupby_column: str,
+        groupby_columns: list[str],
         value_column: str,
         agg_operation: str = "sum",
         sort_descending: bool = True,
         limit: int = 10,
     ) -> str:
-        if groupby_column not in self.df.columns or value_column not in self.df.columns:
-            return '{"error": "columns_not_found"}'
+        missing_cols = [
+            col
+            for col in groupby_columns + [value_column]
+            if col not in self.df.columns
+        ]
+        if missing_cols:
+            return f'{{"error": "columns_not_found", "missing": {missing_cols}}}'
 
         try:
-            agg_df = (
-                self.df.groupby(groupby_column)[value_column]
-                .agg(agg_operation)
-                .reset_index()
+            agg_df = self.df.groupby(groupby_columns, as_index=False)[value_column].agg(
+                agg_operation
             )
 
             if sort_descending:
