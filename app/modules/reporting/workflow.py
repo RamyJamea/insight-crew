@@ -14,9 +14,6 @@ def run_workflow(df: pd.DataFrame, llm: LLM, language: str):
             TimeSeriesTool(df=df),
             ExpressionTool(df=df),
             AnomalyDetectionTool(df=df),
-            CorrelationAnalysisTool(df=df),
-            ClusteringTool(df=df),
-            ForecastTool(df=df),
             ParetoTool(df=df),
         ],
     )

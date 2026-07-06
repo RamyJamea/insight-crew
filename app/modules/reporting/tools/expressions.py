@@ -11,10 +11,8 @@ class ExpressionResult(BaseModel):
 
 
 class ExpressionTool(BaseTool):
-    name: str = "Execute Custom Pandas Expression"
-    description: str = (
-        "Executes a custom Python expression using df, pd and np. Returns strict JSON with type and shape metadata."
-    )
+    name: str = "Execute Smart Custom Pandas Expression"
+    description: str = "Executes a custom Python expression using df, pd and np."
     df: pd.DataFrame = Field(...)
 
     def _run(self, expression: str) -> str:
