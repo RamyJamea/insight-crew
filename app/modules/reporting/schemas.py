@@ -8,9 +8,7 @@ class Column(BaseModel):
 
 
 class ReportPayload(BaseModel):
-    model_provider: str
-    model_code: str
-    api_key: str
+    model: str
     language: str
     count: int
     cloumns: list[Column]
