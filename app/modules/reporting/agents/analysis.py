@@ -8,7 +8,7 @@ def create_analysis_agent(llm, tools: list) -> Agent:
         backstory="Working on an ERP data analysis while having over-thinking disorder, role is to explore data and perform insights extraction to gather multi-dimension information. Excel in running multiple aggregations and pandas expressions to gain rich insights.",
         tools=tools,
         llm=llm,
-        verbose=True,
+        verbose=False,
     )
 
 

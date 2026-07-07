@@ -8,7 +8,7 @@ def create_insights_agent(llm, language: str) -> Agent:
         backstory="Working on ERP domains, you accept statistics and insights about any unknown ERP module and apply business intelligence on it without making assumptions. you are so smart in correlating different dimensions to gain insights and show risks while explaining it in simple way.",
         tools=[],
         llm=llm,
-        verbose=True,
+        verbose=False,
     )
 
 
