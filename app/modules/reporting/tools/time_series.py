@@ -46,49 +46,48 @@ class TimeSeriesTool(BaseTool):
             return f"Error: Missing columns. Available columns in dataset: {list(self.df.columns)}"
 
         try:
+            # Create a local copy to prevent mutating the global agent state
+            local_df = self.df.copy()
+
             # ==========================================
-            # 1. OUTLIER CLEANING (Modifies self.df)
+            # 1. OUTLIER CLEANING (Modifies local_df)
             # ==========================================
-            self.df[value_column] = pd.to_numeric(
-                self.df[value_column], errors="coerce"
+            local_df[value_column] = pd.to_numeric(
+                local_df[value_column], errors="coerce"
             )
 
-            q1 = self.df[value_column].quantile(0.25)
-            q3 = self.df[value_column].quantile(0.75)
+            q1 = local_df[value_column].quantile(0.25)
+            q3 = local_df[value_column].quantile(0.75)
             iqr = q3 - q1
 
             lower_bound = q1 - (outlier_factor * iqr)
             upper_bound = q3 + (outlier_factor * iqr)
 
-            outliers_mask = (self.df[value_column] < lower_bound) | (
-                self.df[value_column] > upper_bound
+            outliers_mask = (local_df[value_column] < lower_bound) | (
+                local_df[value_column] > upper_bound
             )
             num_outliers = int(outliers_mask.sum())
 
             if num_outliers > 0:
                 if outlier_method == "nullify":
-                    self.df.loc[outliers_mask, value_column] = np.nan
+                    local_df.loc[outliers_mask, value_column] = np.nan
                 elif outlier_method == "drop":
-                    # Keep non-outliers and reassign to preserve dataframe reference
-                    cleaned_df = self.df[~outliers_mask]
-                    self.df.drop(self.df.index, inplace=True)
-                    for col in cleaned_df.columns:
-                        self.df[col] = cleaned_df[col]
+                    # Keep non-outliers by reassigning our local copy
+                    local_df = local_df[~outliers_mask]
 
             # ==========================================
             # 2. TIME SERIES MATH (On cleaned data)
             # ==========================================
-            local_df = self.df[[date_column, value_column]].copy()
-            local_df[date_column] = pd.to_datetime(
-                local_df[date_column], errors="coerce"
-            )
-            local_df = (
-                local_df.dropna()
+            # subset the already cleaned local_df
+            math_df = local_df[[date_column, value_column]].copy()
+            math_df[date_column] = pd.to_datetime(math_df[date_column], errors="coerce")
+            math_df = (
+                math_df.dropna()
             )  # Drop NaNs (including nullified outliers) for math calculations
 
             # Resample
             trend_df = (
-                local_df.groupby(pd.Grouper(key=date_column, freq=frequency))[
+                math_df.groupby(pd.Grouper(key=date_column, freq=frequency))[
                     value_column
                 ]
                 .sum()
@@ -180,7 +179,6 @@ class TimeSeriesTool(BaseTool):
 - **Peak:** Reached a maximum of {peak_val:.2f} on {peak_date}.
 - **Trough:** Hit a low of {trough_val:.2f} on {trough_date}.
             """
-
             return observation.strip()
 
         except Exception as e:
